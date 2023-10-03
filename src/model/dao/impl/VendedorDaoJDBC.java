@@ -6,10 +6,7 @@ import model.dao.VendedorDao;
 import model.entities.Departamento;
 import model.entities.Vendedor;
 
-import java.sql.Connection;
-import java.sql.PreparedStatement;
-import java.sql.ResultSet;
-import java.sql.SQLException;
+import java.sql.*;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -26,6 +23,32 @@ public class VendedorDaoJDBC implements VendedorDao {
     @Override
     public void insert(Vendedor vendedor) {
 
+        PreparedStatement preparedStatement = null;
+        try{
+            preparedStatement = connection.prepareStatement("INSERT INTO vendedor (Nome, Email, DataNascimento, BaseSalarial, DepartamentoId) VALUE (?,?,?,?,?)", Statement.RETURN_GENERATED_KEYS);
+            preparedStatement.setString(1,vendedor.getNome());
+            preparedStatement.setString(2,vendedor.getEmail());
+            preparedStatement.setDate(3,new java.sql.Date(vendedor.getDataNascimento().getTime()));
+            preparedStatement.setDouble(4,vendedor.getBaseSalarial());
+            preparedStatement.setInt(5,vendedor.getDepartamento().getId());
+
+            int linhasAlteradas = preparedStatement.executeUpdate();
+
+            if(linhasAlteradas > 0){
+                ResultSet resultSet = preparedStatement.getGeneratedKeys();
+                if(resultSet.next()){
+                    int id = resultSet.getInt(1);
+                    vendedor.setId(id);
+                }
+                DB.closeResultSet(resultSet);
+            }else{
+                throw new DbException("Erro: Nenhuma linha foi alterada!");
+            }
+        }catch (SQLException e){
+            throw new DbException(e.getMessage());
+        }finally {
+            DB.closeStatement(preparedStatement);
+        }
     }
 
     @Override
