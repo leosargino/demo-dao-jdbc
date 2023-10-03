@@ -64,6 +64,40 @@ public class VendedorDaoJDBC implements VendedorDao {
     }
 
     @Override
+    public List<Vendedor> findAll() {
+        PreparedStatement st = null;
+        ResultSet rs = null;
+
+        try {
+            st = connection.prepareStatement("SELECT v.*, d.Nome AS NomeDep\n" +
+                    "FROM vendedor v\n" +
+                    "INNER JOIN departamento d ON v.DepartamentoId = d.Id\n" +
+                    "ORDER BY v.Nome;");
+
+            rs = st.executeQuery();
+            List<Vendedor> list = new ArrayList<>();
+            Map<Integer, Departamento> map = new HashMap<>();
+
+            while (rs.next()) {
+                Departamento departamento1 = map.get(rs.getInt("DepartamentoId"));
+                if (departamento1 == null) {
+                    departamento1 = instantiateDepartamento(rs);
+                    map.put(rs.getInt("DepartamentoId"), departamento1);
+                }
+                Vendedor vendedor = instantiateVendedor(rs, departamento1);
+                list.add(vendedor);
+            }
+            return list;
+
+        } catch (SQLException e) {
+            throw new DbException(e.getMessage());
+        } finally {
+            DB.closeStatement(st);
+            DB.closeResultSet(rs);
+        }
+    }
+
+    @Override
     public List<Vendedor> findyByDepartamento(Departamento departamento) {
         PreparedStatement st = null;
         ResultSet rs = null;
@@ -81,9 +115,9 @@ public class VendedorDaoJDBC implements VendedorDao {
 
             while (rs.next()) {
                 Departamento departamento1 = map.get(rs.getInt("DepartamentoId"));
-                if(departamento1 == null){
+                if (departamento1 == null) {
                     departamento1 = instantiateDepartamento(rs);
-                    map.put(rs.getInt("DepartamentoId"),departamento1);
+                    map.put(rs.getInt("DepartamentoId"), departamento1);
                 }
                 Vendedor vendedor = instantiateVendedor(rs, departamento1);
                 list.add(vendedor);
@@ -114,10 +148,5 @@ public class VendedorDaoJDBC implements VendedorDao {
         departamento.setId(rs.getInt("DepartamentoId"));
         departamento.setNome(rs.getString("NomeDep"));
         return departamento;
-    }
-
-    @Override
-    public List<Vendedor> findAll() {
-        return null;
     }
 }
