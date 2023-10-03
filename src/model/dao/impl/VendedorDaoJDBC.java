@@ -24,36 +24,54 @@ public class VendedorDaoJDBC implements VendedorDao {
     public void insert(Vendedor vendedor) {
 
         PreparedStatement preparedStatement = null;
-        try{
+        try {
             preparedStatement = connection.prepareStatement("INSERT INTO vendedor (Nome, Email, DataNascimento, BaseSalarial, DepartamentoId) VALUE (?,?,?,?,?)", Statement.RETURN_GENERATED_KEYS);
-            preparedStatement.setString(1,vendedor.getNome());
-            preparedStatement.setString(2,vendedor.getEmail());
-            preparedStatement.setDate(3,new java.sql.Date(vendedor.getDataNascimento().getTime()));
-            preparedStatement.setDouble(4,vendedor.getBaseSalarial());
-            preparedStatement.setInt(5,vendedor.getDepartamento().getId());
+            preparedStatement.setString(1, vendedor.getNome());
+            preparedStatement.setString(2, vendedor.getEmail());
+            preparedStatement.setDate(3, new java.sql.Date(vendedor.getDataNascimento().getTime()));
+            preparedStatement.setDouble(4, vendedor.getBaseSalarial());
+            preparedStatement.setInt(5, vendedor.getDepartamento().getId());
 
             int linhasAlteradas = preparedStatement.executeUpdate();
 
-            if(linhasAlteradas > 0){
+            if (linhasAlteradas > 0) {
                 ResultSet resultSet = preparedStatement.getGeneratedKeys();
-                if(resultSet.next()){
+                if (resultSet.next()) {
                     int id = resultSet.getInt(1);
                     vendedor.setId(id);
                 }
                 DB.closeResultSet(resultSet);
-            }else{
+            } else {
                 throw new DbException("Erro: Nenhuma linha foi alterada!");
             }
-        }catch (SQLException e){
+        } catch (SQLException e) {
             throw new DbException(e.getMessage());
-        }finally {
+        } finally {
             DB.closeStatement(preparedStatement);
         }
     }
 
     @Override
     public void update(Vendedor vendedor) {
+        PreparedStatement preparedStatement = null;
+        try {
+            preparedStatement = connection.prepareStatement("UPDATE vendedor \n" +
+                            "SET Nome = ?, Email = ?, DataNascimento = ?, BaseSalarial = ?, DepartamentoId = ?\n" +
+                            "WHERE Id = ?");
+            preparedStatement.setString(1, vendedor.getNome());
+            preparedStatement.setString(2, vendedor.getEmail());
+            preparedStatement.setDate(3, new java.sql.Date(vendedor.getDataNascimento().getTime()));
+            preparedStatement.setDouble(4, vendedor.getBaseSalarial());
+            preparedStatement.setInt(5, vendedor.getDepartamento().getId());
+            preparedStatement.setInt(6, vendedor.getId());
 
+            preparedStatement.executeUpdate();
+
+        } catch (SQLException e) {
+            throw new DbException(e.getMessage());
+        } finally {
+            DB.closeStatement(preparedStatement);
+        }
     }
 
     @Override
