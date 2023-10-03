@@ -13,6 +13,9 @@ public class Vendedor implements Serializable {
     private double baseSalarial;
     private Departamento departamento;
 
+    public Vendedor() {
+    }
+
     public Vendedor(Integer id, String nome, String email, Date dataNascimento, double baseSalarial, Departamento departamento) {
         this.id = id;
         this.nome = nome;
